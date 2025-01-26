@@ -10,6 +10,7 @@ import AdminDashboard from "@/pages/admin";
 import ZonesManagement from "@/pages/admin/zones";
 import ObjectsManagement from "@/pages/admin/objects";
 import ScenariosManagement from "@/pages/admin/scenarios";
+import ReleaseNotes from "@/pages/admin/release-notes";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -21,6 +22,7 @@ function Router() {
       <Route path="/admin/zones" component={ZonesManagement} />
       <Route path="/admin/objects" component={ObjectsManagement} />
       <Route path="/admin/scenarios" component={ScenariosManagement} />
+      <Route path="/admin/release-notes" component={ReleaseNotes} />
       <Route component={NotFound} />
     </Switch>
   );
