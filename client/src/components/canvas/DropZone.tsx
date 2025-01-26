@@ -11,6 +11,7 @@ interface DropZoneProps {
 export default function DropZone({ zone, isActive, onDrop }: DropZoneProps) {
   const handleDragOver = (e: KonvaEventObject<DragEvent>) => {
     e.evt.preventDefault();
+    e.evt.stopPropagation();
     document.body.style.cursor = 'copy';
   };
 
@@ -20,17 +21,19 @@ export default function DropZone({ zone, isActive, onDrop }: DropZoneProps) {
 
   const handleDrop = (e: KonvaEventObject<DragEvent>) => {
     e.evt.preventDefault();
-    document.body.style.cursor = 'default';
+    e.evt.stopPropagation();
 
     const data = e.evt.dataTransfer?.getData("application/x-game-object");
-    if (data) {
-      try {
-        const object = JSON.parse(data);
-        onDrop(object.id, zone.id);
-      } catch (err) {
-        console.error("Failed to parse dropped object data:", err);
-      }
+    if (!data) return;
+
+    try {
+      const obj = JSON.parse(data);
+      onDrop(obj.id, zone.id);
+    } catch (err) {
+      console.error("Failed to parse dropped object:", err);
     }
+
+    document.body.style.cursor = 'default';
   };
 
   return (

@@ -21,9 +21,10 @@ export default function GameCanvas({ zones, objects, onValidate }: GameCanvasPro
     setPlacements(prev => {
       const newPlacements = new Map(prev);
 
-      // Remove any object currently in this zone
-      for (const [existingObjId, existingZoneId] of newPlacements.entries()) {
+      // Check if another object is in this zone
+      for (const [existingObjId, existingZoneId] of Array.from(newPlacements.entries())) {
         if (existingZoneId === zoneId) {
+          // If so, remove it first
           newPlacements.delete(existingObjId);
         }
       }
@@ -32,14 +33,6 @@ export default function GameCanvas({ zones, objects, onValidate }: GameCanvasPro
       newPlacements.set(objectId, zoneId);
       return newPlacements;
     });
-  }, []);
-
-  const handleDragStart = useCallback((objectId: number) => {
-    setDraggedObject(objectId);
-  }, []);
-
-  const handleDragEnd = useCallback(() => {
-    setDraggedObject(null);
   }, []);
 
   const handleRemoveObject = useCallback((objectId: number) => {
@@ -78,8 +71,8 @@ export default function GameCanvas({ zones, objects, onValidate }: GameCanvasPro
             <DraggableObject
               key={obj.id}
               object={obj}
-              onDragStart={() => handleDragStart(obj.id)}
-              onDragEnd={handleDragEnd}
+              onDragStart={() => setDraggedObject(obj.id)}
+              onDragEnd={() => setDraggedObject(null)}
               onRemove={handleRemoveObject}
               placement={placements.get(obj.id)}
               zones={zones}
@@ -90,11 +83,11 @@ export default function GameCanvas({ zones, objects, onValidate }: GameCanvasPro
 
       <button
         className={`absolute bottom-4 right-4 px-6 py-3 rounded-lg font-medium
-          ${placedObjects.length === objects.length
+          ${placedObjects.length > 0
             ? 'bg-primary text-primary-foreground hover:opacity-90'
             : 'bg-muted text-muted-foreground cursor-not-allowed'
           }`}
-        disabled={placedObjects.length !== objects.length}
+        disabled={placedObjects.length === 0}
         onClick={handleValidate}
       >
         Check Answer
