@@ -180,6 +180,11 @@ export default function ScenariosManagement() {
     <div className="container mx-auto p-8">
       <h1 className="text-4xl font-bold mb-8">Scenarios Management</h1>
 
+      <p className="text-muted-foreground mb-8">
+        Create and manage customer-specific training scenarios. Each scenario can be customized with specific zones and objects,
+        and will only be visible to the designated customer.
+      </p>
+
       <div className="grid md:grid-cols-2 gap-8">
         <Card>
           <CardHeader>
@@ -195,7 +200,7 @@ export default function ScenariosManagement() {
                     <FormItem>
                       <FormLabel>Scenario Name</FormLabel>
                       <FormControl>
-                        <Input {...field} />
+                        <Input {...field} placeholder="e.g., Network Configuration Training" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -207,10 +212,13 @@ export default function ScenariosManagement() {
                   name="customerName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Customer Name</FormLabel>
+                      <FormLabel>Customer ID</FormLabel>
                       <FormControl>
-                        <Input {...field} />
+                        <Input {...field} placeholder="e.g., IBM, Microsoft, Google" />
                       </FormControl>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        This scenario will only be visible to users from this customer
+                      </p>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -401,24 +409,48 @@ export default function ScenariosManagement() {
                     </AlertDialog>
                   </div>
 
-                  <h3 className="font-semibold">{scenario.name}</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Customer: {scenario.customerName}
-                  </p>
-                  {scenario.description && (
-                    <p className="text-sm mt-2">{scenario.description}</p>
-                  )}
-                  <div className="mt-2">
-                    <p className="text-sm font-medium">Zones:</p>
-                    <div className="flex flex-wrap gap-1 mt-1">
-                      {scenario.zoneIds.map((zoneId) => (
-                        <span
-                          key={zoneId}
-                          className="text-xs bg-accent px-2 py-1 rounded"
-                        >
-                          {zones?.find((z) => z.id === zoneId)?.name}
+                  <div className="flex items-start gap-2">
+                    <div>
+                      <h3 className="font-semibold">{scenario.name}</h3>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-sm bg-primary/10 text-primary px-2 py-1 rounded-md">
+                          Customer: {scenario.customerName}
                         </span>
-                      ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {scenario.description && (
+                    <p className="text-sm mt-2 text-muted-foreground">{scenario.description}</p>
+                  )}
+
+                  <div className="mt-3 space-y-2">
+                    <div>
+                      <p className="text-sm font-medium">Zones:</p>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {(scenario.zoneIds as number[]).map((zoneId) => (
+                          <span
+                            key={zoneId}
+                            className="text-xs bg-accent px-2 py-1 rounded"
+                          >
+                            {zones?.find((z) => z.id === zoneId)?.name}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <p className="text-sm font-medium">Objects:</p>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {(scenario.objectIds as number[]).map((objectId) => (
+                          <span
+                            key={objectId}
+                            className="text-xs bg-accent px-2 py-1 rounded"
+                          >
+                            {objects?.find((o) => o.id === objectId)?.name}
+                          </span>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 </div>
