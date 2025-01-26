@@ -5,6 +5,9 @@ import type { Zone, GameObject, Placement } from "@/types/game";
 interface GameCanvasProps {
   zones: Zone[];
   objects: GameObject[];
+  placements: Map<number, number>;
+  onObjectPlace: (objectId: number, zoneId: number) => void;
+  onObjectRemove: (objectId: number) => void;
   onValidate: (placements: Placement[]) => void;
 }
 
@@ -64,26 +67,14 @@ const PlacedObject = ({ object, onRemove }: { object: GameObject; onRemove: () =
   );
 };
 
-export default function GameCanvas({ zones, objects, onValidate }: GameCanvasProps) {
-  const [placements, setPlacements] = useState<Map<number, number>>(new Map());
-
-  const handleDrop = (objectId: number, zoneId: number) => {
-    console.log(`Dropping object ${objectId} into zone ${zoneId}`);
-    setPlacements(prev => {
-      const newPlacements = new Map(prev);
-      newPlacements.set(objectId, zoneId);
-      return newPlacements;
-    });
-  };
-
-  const handleRemove = (objectId: number) => {
-    setPlacements(prev => {
-      const newPlacements = new Map(prev);
-      newPlacements.delete(objectId);
-      return newPlacements;
-    });
-  };
-
+export default function GameCanvas({ 
+  zones, 
+  objects, 
+  placements,
+  onObjectPlace,
+  onObjectRemove,
+  onValidate 
+}: GameCanvasProps) {
   const handleValidate = () => {
     const placementArray = Array.from(placements.entries()).map(([objectId, zoneId]) => ({
       objectId,
@@ -102,11 +93,11 @@ export default function GameCanvas({ zones, objects, onValidate }: GameCanvasPro
           : undefined;
 
         return (
-          <DropZone key={zone.id} zone={zone} onDrop={handleDrop}>
+          <DropZone key={zone.id} zone={zone} onDrop={onObjectPlace}>
             {placedObject && (
               <PlacedObject 
                 object={placedObject} 
-                onRemove={() => handleRemove(placedObject.id)}
+                onRemove={() => onObjectRemove(placedObject.id)}
               />
             )}
           </DropZone>

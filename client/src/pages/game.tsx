@@ -14,6 +14,7 @@ interface ScenarioResponse {
 export default function Game() {
   const { toast } = useToast();
   const [placedObjects, setPlacedObjects] = useState<Set<number>>(new Set());
+  const [objectPlacements, setObjectPlacements] = useState<Map<number, number>>(new Map());
 
   const { data, isLoading } = useQuery<ScenarioResponse>({
     queryKey: ["/api/scenario/1"], // TODO: Make dynamic
@@ -43,15 +44,41 @@ export default function Game() {
     return <div>Loading...</div>;
   }
 
-  const handlePlacementsChange = (placements: Placement[]) => {
-    setPlacedObjects(new Set(placements.map(p => p.objectId)));
+  const handleObjectPlace = (objectId: number, zoneId: number) => {
+    setObjectPlacements(prev => {
+      const newPlacements = new Map(prev);
+      newPlacements.set(objectId, zoneId);
+      return newPlacements;
+    });
+    setPlacedObjects(prev => {
+      const newPlaced = new Set(prev);
+      newPlaced.add(objectId);
+      return newPlaced;
+    });
   };
+
+  const handleObjectRemove = (objectId: number) => {
+    setObjectPlacements(prev => {
+      const newPlacements = new Map(prev);
+      newPlacements.delete(objectId);
+      return newPlacements;
+    });
+    setPlacedObjects(prev => {
+      const newPlaced = new Set(prev);
+      newPlaced.delete(objectId);
+      return newPlaced;
+    });
+  };
+
+  const availableObjects = data.objects.filter(obj => !placedObjects.has(obj.id));
 
   return (
     <div className="flex h-screen">
       <aside className="w-64 border-r bg-muted/50">
         <ObjectPanel 
-          objects={data.objects}
+          objects={availableObjects}
+          onObjectPlace={handleObjectPlace}
+          onObjectRemove={handleObjectRemove}
           placedObjects={placedObjects}
         />
       </aside>
@@ -60,9 +87,11 @@ export default function Game() {
         <GameCanvas
           zones={data.zones}
           objects={data.objects}
+          placements={objectPlacements}
+          onObjectPlace={handleObjectPlace}
+          onObjectRemove={handleObjectRemove}
           onValidate={(placements) => {
             validateMutation.mutate(placements);
-            handlePlacementsChange(placements);
           }}
         />
       </main>
