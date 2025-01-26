@@ -45,11 +45,29 @@ export default function Game() {
   }
 
   const handleObjectPlace = (objectId: number, zoneId: number) => {
+    // Check if there's already an object in this zone
+    const existingObjectId = Array.from(objectPlacements.entries())
+      .find(([_, placedZoneId]) => placedZoneId === zoneId)?.[0];
+
+    // If there is, remove it from placements and placed objects
+    if (existingObjectId !== undefined) {
+      setPlacedObjects(prev => {
+        const newPlaced = new Set(prev);
+        newPlaced.delete(existingObjectId);
+        return newPlaced;
+      });
+    }
+
+    // Update placements with the new object
     setObjectPlacements(prev => {
       const newPlacements = new Map(prev);
+      if (existingObjectId !== undefined) {
+        newPlacements.delete(existingObjectId);
+      }
       newPlacements.set(objectId, zoneId);
       return newPlacements;
     });
+
     setPlacedObjects(prev => {
       const newPlaced = new Set(prev);
       newPlaced.add(objectId);
