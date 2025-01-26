@@ -5,12 +5,20 @@ import { Toaster } from "@/components/ui/toaster";
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import Game from "@/pages/game";
+import AdminDashboard from "@/pages/admin";
+import ZonesManagement from "@/pages/admin/zones";
+import ObjectsManagement from "@/pages/admin/objects";
+import ScenariosManagement from "@/pages/admin/scenarios";
 import NotFound from "@/pages/not-found";
 
 function Router() {
   return (
     <Switch>
       <Route path="/" component={Game} />
+      <Route path="/admin" component={AdminDashboard} />
+      <Route path="/admin/zones" component={ZonesManagement} />
+      <Route path="/admin/objects" component={ObjectsManagement} />
+      <Route path="/admin/scenarios" component={ScenariosManagement} />
       <Route component={NotFound} />
     </Switch>
   );

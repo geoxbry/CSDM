@@ -5,6 +5,7 @@ import { zones, objects, scenarios, users } from "@db/schema";
 import { eq, inArray } from "drizzle-orm";
 
 export function registerRoutes(app: Express): Server {
+  // Existing routes
   app.get("/api/scenarios/:customerId", async (req, res) => {
     const { customerId } = req.params;
     const customerScenarios = await db.query.scenarios.findMany({
@@ -33,6 +34,60 @@ export function registerRoutes(app: Express): Server {
       zones: scenarioZones,
       objects: scenarioObjects
     });
+  });
+
+  // Admin API Routes
+  app.get("/api/admin/zones", async (req, res) => {
+    const allZones = await db.query.zones.findMany();
+    res.json(allZones);
+  });
+
+  app.post("/api/admin/zones", async (req, res) => {
+    const { name, x, y, width, height, description } = req.body;
+    const newZone = await db.insert(zones).values({
+      name,
+      x,
+      y,
+      width,
+      height,
+      description
+    }).returning();
+    res.json(newZone[0]);
+  });
+
+  app.get("/api/admin/objects", async (req, res) => {
+    const allObjects = await db.query.objects.findMany();
+    res.json(allObjects);
+  });
+
+  app.post("/api/admin/objects", async (req, res) => {
+    const { name, objectType, correctZoneId, errorMessage, successMessage, points } = req.body;
+    const newObject = await db.insert(objects).values({
+      name,
+      objectType,
+      correctZoneId,
+      errorMessage,
+      successMessage,
+      points
+    }).returning();
+    res.json(newObject[0]);
+  });
+
+  app.get("/api/admin/scenarios", async (req, res) => {
+    const allScenarios = await db.query.scenarios.findMany();
+    res.json(allScenarios);
+  });
+
+  app.post("/api/admin/scenarios", async (req, res) => {
+    const { name, customerName, description, zoneIds, objectIds } = req.body;
+    const newScenario = await db.insert(scenarios).values({
+      name,
+      customerName,
+      description,
+      zoneIds,
+      objectIds
+    }).returning();
+    res.json(newScenario[0]);
   });
 
   app.post("/api/validate", async (req, res) => {

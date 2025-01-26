@@ -1,0 +1,223 @@
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import type { Zone } from "@/types/game";
+
+const formSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  x: z.number().min(0, "X must be positive"),
+  y: z.number().min(0, "Y must be positive"),
+  width: z.number().min(50, "Width must be at least 50px"),
+  height: z.number().min(50, "Height must be at least 50px"),
+  description: z.string().optional(),
+});
+
+export default function ZonesManagement() {
+  const { toast } = useToast();
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: "",
+      x: 0,
+      y: 0,
+      width: 200,
+      height: 150,
+      description: "",
+    },
+  });
+
+  const { data: zones, isLoading } = useQuery<Zone[]>({
+    queryKey: ["/api/admin/zones"],
+  });
+
+  const createZoneMutation = useMutation({
+    mutationFn: async (values: z.infer<typeof formSchema>) => {
+      const res = await fetch("/api/admin/zones", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(values),
+      });
+      if (!res.ok) throw new Error("Failed to create zone");
+      return res.json();
+    },
+    onSuccess: () => {
+      toast({ title: "Zone created successfully" });
+      form.reset();
+    },
+    onError: () => {
+      toast({
+        title: "Failed to create zone",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const onSubmit = (values: z.infer<typeof formSchema>) => {
+    createZoneMutation.mutate(values);
+  };
+
+  if (isLoading) return <div>Loading...</div>;
+
+  return (
+    <div className="container mx-auto p-8">
+      <h1 className="text-4xl font-bold mb-8">Zones Management</h1>
+
+      <div className="grid md:grid-cols-2 gap-8">
+        <Card>
+          <CardHeader>
+            <CardTitle>Create New Zone</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Zone Name</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="x"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>X Position</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            {...field}
+                            onChange={(e) => field.onChange(Number(e.target.value))}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="y"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Y Position</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            {...field}
+                            onChange={(e) => field.onChange(Number(e.target.value))}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="width"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Width</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            {...field}
+                            onChange={(e) => field.onChange(Number(e.target.value))}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="height"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Height</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            {...field}
+                            onChange={(e) => field.onChange(Number(e.target.value))}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <FormField
+                  control={form.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Description</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <Button type="submit">Create Zone</Button>
+              </form>
+            </Form>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Existing Zones</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {zones?.map((zone) => (
+                <div
+                  key={zone.id}
+                  className="p-4 border rounded-lg hover:bg-accent/50"
+                >
+                  <h3 className="font-semibold">{zone.name}</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Position: ({zone.x}, {zone.y}) - Size: {zone.width}x
+                    {zone.height}
+                  </p>
+                  {zone.description && (
+                    <p className="text-sm mt-2">{zone.description}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
