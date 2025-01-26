@@ -1,5 +1,5 @@
 import { Stage, Layer } from "react-konva";
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback } from "react";
 import type { Zone, GameObject, Placement } from "@/types/game";
 import DropZone from "./DropZone";
 import DraggableObject from "./DraggableObject";
@@ -59,14 +59,7 @@ export default function GameCanvas({ zones, objects, onValidate }: GameCanvasPro
   const placedObjects = objects.filter(obj => placements.has(obj.id));
 
   return (
-    <div 
-      className="relative w-full h-full bg-background/50" 
-      style={{ touchAction: 'none' }}
-      onDragOver={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
-      }}
-    >
+    <div className="relative w-full h-full bg-background/50">
       <Stage width={CANVAS_WIDTH} height={CANVAS_HEIGHT}>
         <Layer>
           {zones.map(zone => (

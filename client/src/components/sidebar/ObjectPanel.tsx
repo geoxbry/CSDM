@@ -8,17 +8,18 @@ interface ObjectPanelProps {
   onDragStart: (objectId: number) => void;
 }
 
-export default function ObjectPanel({ objects, placedObjects }: ObjectPanelProps) {
+export default function ObjectPanel({ objects, placedObjects, onDragStart }: ObjectPanelProps) {
   const handleDragStart = useCallback((e: React.DragEvent<HTMLDivElement>, obj: GameObject) => {
-    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.effectAllowed = 'copy';
     e.dataTransfer.setData("text/plain", JSON.stringify({
       id: obj.id,
       name: obj.name,
       type: obj.objectType
     }));
-  }, []);
+    onDragStart(obj.id);
+  }, [onDragStart]);
 
-  // Filter out objects that are already placed on the canvas
+  // Show all objects that aren't currently placed
   const availableObjects = objects.filter(obj => !placedObjects.has(obj.id));
 
   return (

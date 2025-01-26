@@ -9,19 +9,6 @@ interface DropZoneProps {
 }
 
 export default function DropZone({ zone, isActive, onDrop }: DropZoneProps) {
-  const handleDragOver = (e: KonvaEventObject<DragEvent>) => {
-    e.evt.preventDefault();
-    e.evt.stopPropagation();
-    // Change the cursor to indicate droppable
-    document.body.style.cursor = 'copy';
-  };
-
-  const handleDragLeave = (e: KonvaEventObject<DragEvent>) => {
-    e.evt.preventDefault();
-    e.evt.stopPropagation();
-    document.body.style.cursor = 'default';
-  };
-
   const handleDrop = (e: KonvaEventObject<DragEvent>) => {
     e.evt.preventDefault();
     e.evt.stopPropagation();
@@ -49,8 +36,9 @@ export default function DropZone({ zone, isActive, onDrop }: DropZoneProps) {
         stroke="rgba(0,0,0,0.2)"
         strokeWidth={2}
         cornerRadius={8}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
+        onDragOver={(e: KonvaEventObject<DragEvent>) => {
+          e.evt.preventDefault();
+        }}
         onDrop={handleDrop}
       />
       <Text
