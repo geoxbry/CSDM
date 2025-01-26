@@ -14,9 +14,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Pencil } from "lucide-react";
 import type { Zone } from "@/types/game";
 
 const formSchema = z.object({
+  id: z.number().optional(),
   name: z.string().min(1, "Name is required"),
   x: z.number().min(0, "X must be positive"),
   y: z.number().min(0, "Y must be positive"),
@@ -65,8 +67,38 @@ export default function ZonesManagement() {
     },
   });
 
+  const updateZoneMutation = useMutation({
+    mutationFn: async (values: z.infer<typeof formSchema>) => {
+      const res = await fetch(`/api/admin/zones/${values.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(values),
+      });
+      if (!res.ok) throw new Error("Failed to update zone");
+      return res.json();
+    },
+    onSuccess: () => {
+      toast({ title: "Zone updated successfully" });
+      form.reset();
+    },
+    onError: () => {
+      toast({
+        title: "Failed to update zone",
+        variant: "destructive",
+      });
+    },
+  });
+
   const onSubmit = (values: z.infer<typeof formSchema>) => {
-    createZoneMutation.mutate(values);
+    if (values.id) {
+      updateZoneMutation.mutate(values);
+    } else {
+      createZoneMutation.mutate(values);
+    }
+  };
+
+  const handleEdit = (zone: Zone) => {
+    form.reset(zone);
   };
 
   if (isLoading) return <div>Loading...</div>;
@@ -78,7 +110,9 @@ export default function ZonesManagement() {
       <div className="grid md:grid-cols-2 gap-8">
         <Card>
           <CardHeader>
-            <CardTitle>Create New Zone</CardTitle>
+            <CardTitle>
+              {form.getValues("id") ? "Edit Zone" : "Create New Zone"}
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <Form {...form}>
@@ -187,7 +221,20 @@ export default function ZonesManagement() {
                   )}
                 />
 
-                <Button type="submit">Create Zone</Button>
+                <div className="flex gap-2">
+                  <Button type="submit">
+                    {form.getValues("id") ? "Update Zone" : "Create Zone"}
+                  </Button>
+                  {form.getValues("id") && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => form.reset()}
+                    >
+                      Cancel Edit
+                    </Button>
+                  )}
+                </div>
               </form>
             </Form>
           </CardContent>
@@ -202,8 +249,15 @@ export default function ZonesManagement() {
               {zones?.map((zone) => (
                 <div
                   key={zone.id}
-                  className="p-4 border rounded-lg hover:bg-accent/50"
+                  className="p-4 border rounded-lg hover:bg-accent/50 relative group"
                 >
+                  <button
+                    onClick={() => handleEdit(zone)}
+                    className="absolute right-2 top-2 p-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                    title="Edit zone"
+                  >
+                    <Pencil className="w-4 h-4" />
+                  </button>
                   <h3 className="font-semibold">{zone.name}</h3>
                   <p className="text-sm text-muted-foreground">
                     Position: ({zone.x}, {zone.y}) - Size: {zone.width}x

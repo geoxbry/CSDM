@@ -102,6 +102,30 @@ export function registerRoutes(app: Express): Server {
     res.json(newZone[0]);
   });
 
+  app.put("/api/admin/zones/:id", requireAdmin, async (req, res) => {
+    const { id } = req.params;
+    const { name, x, y, width, height, description } = req.body;
+
+    const updatedZone = await db
+      .update(zones)
+      .set({
+        name,
+        x,
+        y,
+        width,
+        height,
+        description,
+      })
+      .where(eq(zones.id, parseInt(id)))
+      .returning();
+
+    if (!updatedZone.length) {
+      return res.status(404).json({ message: "Zone not found" });
+    }
+
+    res.json(updatedZone[0]);
+  });
+
   app.get("/api/admin/objects", requireAdmin, async (req, res) => {
     const allObjects = await db.query.objects.findMany();
     res.json(allObjects);
