@@ -1,4 +1,4 @@
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -36,6 +36,7 @@ const objectTypes = ["Server", "Database", "Active Directory", "Network Device"]
 
 export default function ObjectsManagement() {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -65,9 +66,13 @@ export default function ObjectsManagement() {
       if (!res.ok) throw new Error("Failed to create object");
       return res.json();
     },
-    onSuccess: () => {
+    onSuccess: (newObject) => {
       toast({ title: "Object created successfully" });
       form.reset();
+      queryClient.setQueryData(["/api/admin/objects"], (old: GameObject[] | undefined) => {
+        return [...(old || []), newObject];
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/objects"] });
     },
     onError: () => {
       toast({
@@ -140,7 +145,7 @@ export default function ObjectsManagement() {
                   name="correctZoneId"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Correct Zone</FormLabel>
+                      <FormLabel>Correct Zone in Main Canvas</FormLabel>
                       <Select
                         onValueChange={(value) => field.onChange(Number(value))}
                         defaultValue={field.value?.toString()}
