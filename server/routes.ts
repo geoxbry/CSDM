@@ -99,6 +99,20 @@ export function registerRoutes(app: Express): Server {
         description,
       })
       .returning();
+
+    // Update the default scenario (id: 1) to include the new zone
+    const scenario = await db.query.scenarios.findFirst({
+      where: eq(scenarios.id, 1),
+    });
+
+    if (scenario) {
+      const updatedZoneIds = [...(scenario.zoneIds as number[]), newZone[0].id];
+      await db
+        .update(scenarios)
+        .set({ zoneIds: updatedZoneIds })
+        .where(eq(scenarios.id, 1));
+    }
+
     res.json(newZone[0]);
   });
 
