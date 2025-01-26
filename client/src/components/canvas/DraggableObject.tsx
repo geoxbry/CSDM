@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import { Text, Group, Rect } from "react-konva";
 import type { GameObject, Zone } from "@/types/game";
 
@@ -6,6 +6,7 @@ interface DraggableObjectProps {
   object: GameObject;
   onDragStart: () => void;
   onDragEnd: () => void;
+  onRemove: (objectId: number) => void; // New prop for handling removal
   placement?: number;
   zones: Zone[];
 }
@@ -17,10 +18,11 @@ export default function DraggableObject({
   object,
   onDragStart,
   onDragEnd,
+  onRemove,
   placement,
   zones
 }: DraggableObjectProps) {
-  const groupRef = useRef(null);
+  const groupRef = useRef<any>(null);
 
   const zone = placement !== undefined 
     ? zones.find(z => z.id === placement)
@@ -51,6 +53,10 @@ export default function DraggableObject({
     }
   }, [zone, position.x, position.y]);
 
+  const handleDoubleClick = useCallback(() => {
+    onRemove(object.id);
+  }, [object.id, onRemove]);
+
   return (
     <Group
       ref={groupRef}
@@ -59,12 +65,9 @@ export default function DraggableObject({
       width={OBJECT_WIDTH}
       height={OBJECT_HEIGHT}
       draggable
-      onDragStart={() => {
-        onDragStart();
-      }}
-      onDragEnd={(e) => {
-        onDragEnd();
-      }}
+      onDragStart={onDragStart}
+      onDragEnd={onDragEnd}
+      onDblClick={handleDoubleClick}
     >
       <Rect
         width={OBJECT_WIDTH}

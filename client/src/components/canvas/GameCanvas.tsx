@@ -1,5 +1,5 @@
 import { Stage, Layer } from "react-konva";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import type { Zone, GameObject, Placement } from "@/types/game";
 import DropZone from "./DropZone";
 import DraggableObject from "./DraggableObject";
@@ -17,6 +17,9 @@ export default function GameCanvas({ zones, objects, onValidate }: GameCanvasPro
   const [placements, setPlacements] = useState<Map<number, number>>(new Map());
   const [draggedObject, setDraggedObject] = useState<number | null>(null);
 
+  // Create a Set of placed object IDs for efficient lookup
+  const placedObjectIds = useMemo(() => new Set(placements.keys()), [placements]);
+
   const handleDrop = useCallback((objectId: number, zoneId: number) => {
     setPlacements(prev => {
       const newPlacements = new Map(prev);
@@ -31,6 +34,14 @@ export default function GameCanvas({ zones, objects, onValidate }: GameCanvasPro
 
   const handleDragEnd = useCallback(() => {
     setDraggedObject(null);
+  }, []);
+
+  const handleRemoveObject = useCallback((objectId: number) => {
+    setPlacements(prev => {
+      const newPlacements = new Map(prev);
+      newPlacements.delete(objectId);
+      return newPlacements;
+    });
   }, []);
 
   const handleValidate = () => {
@@ -100,6 +111,7 @@ export default function GameCanvas({ zones, objects, onValidate }: GameCanvasPro
               object={obj}
               onDragStart={() => handleDragStart(obj.id)}
               onDragEnd={handleDragEnd}
+              onRemove={handleRemoveObject}
               placement={placements.get(obj.id)}
               zones={zones}
             />
