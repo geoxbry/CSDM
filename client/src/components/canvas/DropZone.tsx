@@ -11,29 +11,14 @@ interface DropZoneProps {
 export default function DropZone({ zone, isActive, onDrop }: DropZoneProps) {
   const handleDragOver = (e: KonvaEventObject<DragEvent>) => {
     e.evt.preventDefault();
-    e.evt.stopPropagation();
-    document.body.style.cursor = 'copy';
-  };
-
-  const handleDragLeave = () => {
-    document.body.style.cursor = 'default';
   };
 
   const handleDrop = (e: KonvaEventObject<DragEvent>) => {
     e.evt.preventDefault();
-    e.evt.stopPropagation();
-
-    try {
-      const data = e.evt.dataTransfer?.getData("application/x-game-object");
-      if (!data) return;
-
-      const obj = JSON.parse(data);
-      onDrop(obj.id, zone.id);
-    } catch (err) {
-      console.error("Failed to parse dropped object:", err);
+    const objectId = e.evt.dataTransfer?.getData("text/plain");
+    if (objectId) {
+      onDrop(parseInt(objectId, 10), zone.id);
     }
-
-    document.body.style.cursor = 'default';
   };
 
   return (
@@ -44,11 +29,10 @@ export default function DropZone({ zone, isActive, onDrop }: DropZoneProps) {
         width={zone.width}
         height={zone.height}
         fill={isActive ? "rgba(0,0,0,0.05)" : "transparent"}
-        stroke={isActive ? "#000" : "rgba(0,0,0,0.2)"}
+        stroke={isActive ? "#000" : "#ddd"}
         strokeWidth={2}
         cornerRadius={8}
         onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
         onDrop={handleDrop}
       />
       <Text

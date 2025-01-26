@@ -41,7 +41,6 @@ export default function GameCanvas({ zones, objects, onValidate }: GameCanvasPro
     onValidate(placementArray);
   };
 
-  // Only render objects that have been placed on the canvas
   const placedObjects = objects.filter(obj => placements.has(obj.id));
 
   return (

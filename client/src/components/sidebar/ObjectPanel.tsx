@@ -1,6 +1,5 @@
 import { Card } from "@/components/ui/card";
 import type { GameObject } from "@/types/game";
-import { useCallback } from "react";
 
 interface ObjectPanelProps {
   objects: GameObject[];
@@ -9,11 +8,10 @@ interface ObjectPanelProps {
 }
 
 export default function ObjectPanel({ objects, placedObjects, onDragStart }: ObjectPanelProps) {
-  const handleDragStart = useCallback((e: React.DragEvent<HTMLDivElement>, obj: GameObject) => {
-    e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData("application/x-game-object", JSON.stringify(obj));
+  const handleDragStart = (e: React.DragEvent<HTMLDivElement>, obj: GameObject) => {
+    e.dataTransfer.setData("text/plain", obj.id.toString());
     onDragStart(obj.id);
-  }, [onDragStart]);
+  };
 
   return (
     <div className="w-64 h-full bg-background border-r">
@@ -23,7 +21,7 @@ export default function ObjectPanel({ objects, placedObjects, onDragStart }: Obj
           {objects.map(obj => (
             <div
               key={obj.id}
-              className={`p-3 bg-card border rounded-lg select-none cursor-move hover:bg-accent/50`}
+              className="p-3 bg-card border rounded-lg select-none cursor-move hover:bg-accent/50"
               draggable={true}
               onDragStart={(e) => handleDragStart(e, obj)}
             >
