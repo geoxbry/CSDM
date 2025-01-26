@@ -67,9 +67,12 @@ export default function ZonesManagement() {
       if (!res.ok) throw new Error("Failed to create zone");
       return res.json();
     },
-    onSuccess: () => {
+    onSuccess: (newZone) => {
       toast({ title: "Zone created successfully" });
       form.reset();
+      queryClient.setQueryData(["/api/admin/zones"], (old: Zone[] | undefined) => {
+        return [...(old || []), newZone];
+      });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/zones"] });
     },
     onError: () => {
@@ -90,9 +93,12 @@ export default function ZonesManagement() {
       if (!res.ok) throw new Error("Failed to update zone");
       return res.json();
     },
-    onSuccess: () => {
+    onSuccess: (updatedZone) => {
       toast({ title: "Zone updated successfully" });
       form.reset();
+      queryClient.setQueryData(["/api/admin/zones"], (old: Zone[] | undefined) => {
+        return old?.map(zone => zone.id === updatedZone.id ? updatedZone : zone) || [];
+      });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/zones"] });
     },
     onError: () => {
@@ -111,8 +117,11 @@ export default function ZonesManagement() {
       if (!res.ok) throw new Error("Failed to delete zone");
       return res.json();
     },
-    onSuccess: () => {
+    onSuccess: (_, deletedId) => {
       toast({ title: "Zone deleted successfully" });
+      queryClient.setQueryData(["/api/admin/zones"], (old: Zone[] | undefined) => {
+        return old?.filter(zone => zone.id !== deletedId) || [];
+      });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/zones"] });
     },
     onError: () => {
