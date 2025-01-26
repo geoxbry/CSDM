@@ -8,19 +8,24 @@ interface ObjectPanelProps {
 
 export default function ObjectPanel({ objects }: ObjectPanelProps) {
   const handleDragStart = useCallback((e: React.DragEvent<HTMLDivElement>, obj: GameObject) => {
-    e.dataTransfer.setData("application/json", JSON.stringify(obj));
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData("text/plain", JSON.stringify({
+      id: obj.id,
+      name: obj.name,
+      type: obj.objectType
+    }));
   }, []);
 
   return (
-    <Card className="w-64 h-full">
-      <CardContent className="p-4">
+    <div className="w-64 h-full bg-background border-r">
+      <div className="p-4">
         <h2 className="text-lg font-semibold mb-4">Objects</h2>
         <div className="space-y-2">
           {objects.map(obj => (
             <div
               key={obj.id}
-              className="p-3 bg-card border rounded-lg cursor-move hover:bg-accent/50"
-              draggable
+              className="p-3 bg-card border rounded-lg cursor-move hover:bg-accent/50 select-none"
+              draggable="true"
               onDragStart={(e) => handleDragStart(e, obj)}
             >
               <p className="font-medium">{obj.name}</p>
@@ -28,7 +33,7 @@ export default function ObjectPanel({ objects }: ObjectPanelProps) {
             </div>
           ))}
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

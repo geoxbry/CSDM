@@ -18,7 +18,11 @@ export default function GameCanvas({ zones, objects, onValidate }: GameCanvasPro
   const [draggedObject, setDraggedObject] = useState<number | null>(null);
 
   const handleDrop = useCallback((objectId: number, zoneId: number) => {
-    setPlacements(prev => new Map(prev).set(objectId, zoneId));
+    setPlacements(prev => {
+      const newPlacements = new Map(prev);
+      newPlacements.set(objectId, zoneId);
+      return newPlacements;
+    });
   }, []);
 
   const handleDragStart = useCallback((objectId: number) => {
@@ -37,13 +41,11 @@ export default function GameCanvas({ zones, objects, onValidate }: GameCanvasPro
     onValidate(placementArray);
   };
 
-  const isComplete = placements.size === objects.length;
-
   // Only render objects that have been placed on the canvas
   const placedObjects = objects.filter(obj => placements.has(obj.id));
 
   return (
-    <div className="relative">
+    <div className="relative w-full h-full" style={{ touchAction: 'none' }}>
       <Stage width={CANVAS_WIDTH} height={CANVAS_HEIGHT}>
         <Layer>
           {zones.map(zone => (
@@ -70,11 +72,11 @@ export default function GameCanvas({ zones, objects, onValidate }: GameCanvasPro
 
       <button
         className={`absolute bottom-4 right-4 px-6 py-3 rounded-lg font-medium
-          ${isComplete 
+          ${placedObjects.length === objects.length
             ? 'bg-primary text-primary-foreground hover:opacity-90'
             : 'bg-muted text-muted-foreground cursor-not-allowed'
           }`}
-        disabled={!isComplete}
+        disabled={placedObjects.length !== objects.length}
         onClick={handleValidate}
       >
         Check Answer

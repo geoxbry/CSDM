@@ -9,6 +9,24 @@ interface DropZoneProps {
 }
 
 export default function DropZone({ zone, isActive, onDrop }: DropZoneProps) {
+  const handleDragOver = (e: KonvaEventObject<DragEvent>) => {
+    e.evt.preventDefault();
+    e.evt.stopPropagation();
+  };
+
+  const handleDrop = (e: KonvaEventObject<DragEvent>) => {
+    e.evt.preventDefault();
+    const data = e.evt.dataTransfer?.getData("text/plain");
+    if (data) {
+      try {
+        const object = JSON.parse(data);
+        onDrop(object.id, zone.id);
+      } catch (err) {
+        console.error("Failed to parse dropped object data:", err);
+      }
+    }
+  };
+
   return (
     <Group>
       <Rect
@@ -20,18 +38,8 @@ export default function DropZone({ zone, isActive, onDrop }: DropZoneProps) {
         stroke="rgba(0,0,0,0.2)"
         strokeWidth={2}
         cornerRadius={8}
-        onDragOver={(e: KonvaEventObject<DragEvent>) => {
-          e.evt.preventDefault();
-          e.evt.stopPropagation();
-        }}
-        onDrop={(e: KonvaEventObject<DragEvent>) => {
-          e.evt.preventDefault();
-          const objectData = e.evt.dataTransfer?.getData("application/json");
-          if (objectData) {
-            const object = JSON.parse(objectData);
-            onDrop(object.id, zone.id);
-          }
-        }}
+        onDragOver={handleDragOver}
+        onDrop={handleDrop}
       />
       <Text
         x={zone.x}
