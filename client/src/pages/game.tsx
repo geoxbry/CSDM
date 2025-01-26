@@ -45,14 +45,11 @@ export default function Game() {
   }
 
   const handleObjectPlace = (objectId: number, zoneId: number) => {
-    // Check if any object is already in this zone
-    const existingObjectInZone = Array.from(objectPlacements.entries())
-      .find(([_, zId]) => zId === zoneId);
-
-    if (existingObjectInZone) {
-      const [existingObjectId] = existingObjectInZone;
-      // Remove the existing object from placements and placed objects
-      // This will make it return to the left panel
+    // First clear any existing object in this zone
+    const currentObjectInZone = Array.from(objectPlacements).find(([_, zone]) => zone === zoneId);
+    if (currentObjectInZone) {
+      const [existingObjectId] = currentObjectInZone;
+      // Return the existing object to the panel
       setPlacedObjects(prev => {
         const newPlaced = new Set(prev);
         newPlaced.delete(existingObjectId);
@@ -60,21 +57,31 @@ export default function Game() {
       });
     }
 
-    // Update placements - remove any existing object in the zone and set the new object
+    // Clear any previous placement of the new object
+    const previousZone = objectPlacements.get(objectId);
+    if (previousZone !== undefined) {
+      setObjectPlacements(prev => {
+        const newPlacements = new Map(prev);
+        newPlacements.delete(objectId);
+        return newPlacements;
+      });
+    }
+
+    // Set the new placement
     setObjectPlacements(prev => {
       const newPlacements = new Map(prev);
-      // Remove any object that was in this zone
-      for (const [objId, zId] of newPlacements.entries()) {
+      // First remove any object that was in this zone
+      Array.from(newPlacements.entries()).forEach(([objId, zId]) => {
         if (zId === zoneId) {
           newPlacements.delete(objId);
         }
-      }
-      // Place the new object
+      });
+      // Then set the new object
       newPlacements.set(objectId, zoneId);
       return newPlacements;
     });
 
-    // Mark the new object as placed
+    // Mark the object as placed
     setPlacedObjects(prev => {
       const newPlaced = new Set(prev);
       newPlaced.add(objectId);
