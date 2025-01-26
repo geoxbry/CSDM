@@ -21,7 +21,18 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Pencil } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import type { Scenario, Zone, GameObject } from "@/types/game";
 
 const formSchema = z.object({
@@ -72,11 +83,9 @@ export default function ScenariosManagement() {
     onSuccess: (newScenario) => {
       toast({ title: "Scenario created successfully" });
       form.reset();
-      // Update the cache immediately
       queryClient.setQueryData(["/api/admin/scenarios"], (old: Scenario[] | undefined) => {
         return [...(old || []), newScenario];
       });
-      // Invalidate to ensure consistency with server
       queryClient.invalidateQueries({ queryKey: ["/api/admin/scenarios"] });
     },
     onError: () => {
@@ -100,18 +109,39 @@ export default function ScenariosManagement() {
     onSuccess: (updatedScenario) => {
       toast({ title: "Scenario updated successfully" });
       form.reset();
-      // Update the cache immediately
       queryClient.setQueryData(["/api/admin/scenarios"], (old: Scenario[] | undefined) => {
-        return old?.map(scenario => 
+        return old?.map(scenario =>
           scenario.id === updatedScenario.id ? updatedScenario : scenario
         ) || [];
       });
-      // Invalidate to ensure consistency with server
       queryClient.invalidateQueries({ queryKey: ["/api/admin/scenarios"] });
     },
     onError: () => {
       toast({
         title: "Failed to update scenario",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteScenarioMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const res = await fetch(`/api/admin/scenarios/${id}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) throw new Error("Failed to delete scenario");
+      return res.json();
+    },
+    onSuccess: (_, deletedId) => {
+      toast({ title: "Scenario deleted successfully" });
+      queryClient.setQueryData(["/api/admin/scenarios"], (old: Scenario[] | undefined) => {
+        return old?.filter(scenario => scenario.id !== deletedId) || [];
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/scenarios"] });
+    },
+    onError: () => {
+      toast({
+        title: "Failed to delete scenario",
         variant: "destructive",
       });
     },
@@ -134,6 +164,10 @@ export default function ScenariosManagement() {
       zoneIds: scenario.zoneIds as number[],
       objectIds: scenario.objectIds as number[],
     });
+  };
+
+  const handleDelete = (id: number) => {
+    deleteScenarioMutation.mutate(id);
   };
 
   return (
@@ -197,7 +231,7 @@ export default function ScenariosManagement() {
                     <FormItem>
                       <FormLabel>Zones</FormLabel>
                       <Select
-                        onValueChange={(value) => 
+                        onValueChange={(value) =>
                           field.onChange([...field.value, Number(value)])
                         }
                       >
@@ -326,7 +360,7 @@ export default function ScenariosManagement() {
                   key={scenario.id}
                   className="p-4 border rounded-lg hover:bg-accent/50 relative group"
                 >
-                  <div className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="absolute right-2 top-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button
                       onClick={() => handleEdit(scenario)}
                       className="p-2"
@@ -334,7 +368,33 @@ export default function ScenariosManagement() {
                     >
                       <Pencil className="w-4 h-4" />
                     </button>
+
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <button className="p-2 text-destructive hover:text-destructive/90" title="Delete scenario">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete Scenario</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Are you sure you want to delete the scenario "{scenario.name}"? This action cannot be undone.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => handleDelete(scenario.id)}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          >
+                            Delete
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </div>
+
                   <h3 className="font-semibold">{scenario.name}</h3>
                   <p className="text-sm text-muted-foreground">
                     Customer: {scenario.customerName}

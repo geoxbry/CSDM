@@ -249,6 +249,22 @@ export function registerRoutes(app: Express): Server {
     res.json(updatedScenario[0]);
   });
 
+  app.delete("/api/admin/scenarios/:id", requireAdmin, async (req, res) => {
+    const { id } = req.params;
+    const scenarioId = parseInt(id);
+
+    const deletedScenario = await db
+      .delete(scenarios)
+      .where(eq(scenarios.id, scenarioId))
+      .returning();
+
+    if (!deletedScenario.length) {
+      return res.status(404).json({ message: "Scenario not found" });
+    }
+
+    res.json(deletedScenario[0]);
+  });
+
   // Non-admin routes
   app.get("/api/scenarios/:customerId", async (req, res) => {
     const { customerId } = req.params;
