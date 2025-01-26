@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { db } from "@db";
 import { zones, objects, scenarios, users } from "@db/schema";
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 
 export function registerRoutes(app: Express): Server {
   app.get("/api/scenarios/:customerId", async (req, res) => {
@@ -21,11 +21,11 @@ export function registerRoutes(app: Express): Server {
     if (!scenario) return res.status(404).json({ message: "Scenario not found" });
 
     const scenarioZones = await db.query.zones.findMany({
-      where: (zones) => zones.id.in(scenario.zoneIds as number[])
+      where: inArray(zones.id, scenario.zoneIds as number[])
     });
 
     const scenarioObjects = await db.query.objects.findMany({
-      where: (objects) => objects.id.in(scenario.objectIds as number[])
+      where: inArray(objects.id, scenario.objectIds as number[])
     });
 
     res.json({
@@ -44,7 +44,7 @@ export function registerRoutes(app: Express): Server {
       const object = await db.query.objects.findFirst({
         where: eq(objects.id, placement.objectId)
       });
-      
+
       if (!object) continue;
 
       const isCorrect = object.correctZoneId === placement.zoneId;
