@@ -9,12 +9,20 @@ interface DropZoneProps {
 }
 
 export default function DropZone({ zone, isActive, onDrop }: DropZoneProps) {
+  const handleDragOver = (e: KonvaEventObject<DragEvent>) => {
+    e.evt.preventDefault();
+    document.body.style.cursor = 'copy';
+  };
+
+  const handleDragLeave = () => {
+    document.body.style.cursor = 'default';
+  };
+
   const handleDrop = (e: KonvaEventObject<DragEvent>) => {
     e.evt.preventDefault();
-    e.evt.stopPropagation();
     document.body.style.cursor = 'default';
 
-    const data = e.evt.dataTransfer?.getData("text/plain");
+    const data = e.evt.dataTransfer?.getData("application/x-game-object");
     if (data) {
       try {
         const object = JSON.parse(data);
@@ -33,12 +41,11 @@ export default function DropZone({ zone, isActive, onDrop }: DropZoneProps) {
         width={zone.width}
         height={zone.height}
         fill={isActive ? "rgba(0,0,0,0.05)" : "transparent"}
-        stroke="rgba(0,0,0,0.2)"
+        stroke={isActive ? "#000" : "rgba(0,0,0,0.2)"}
         strokeWidth={2}
         cornerRadius={8}
-        onDragOver={(e: KonvaEventObject<DragEvent>) => {
-          e.evt.preventDefault();
-        }}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
         onDrop={handleDrop}
       />
       <Text

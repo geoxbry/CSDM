@@ -18,18 +18,21 @@ export default function GameCanvas({ zones, objects, onValidate }: GameCanvasPro
   const [draggedObject, setDraggedObject] = useState<number | null>(null);
 
   const handleDrop = useCallback((objectId: number, zoneId: number) => {
-    // Check if the zone already has an object
-    const zoneHasObject = Array.from(placements.entries()).some(([_, zone]) => zone === zoneId);
-    if (zoneHasObject) {
-      return; // Don't allow the drop if zone is occupied
-    }
-
     setPlacements(prev => {
       const newPlacements = new Map(prev);
+
+      // Remove any object currently in this zone
+      for (const [existingObjId, existingZoneId] of newPlacements.entries()) {
+        if (existingZoneId === zoneId) {
+          newPlacements.delete(existingObjId);
+        }
+      }
+
+      // Place the new object
       newPlacements.set(objectId, zoneId);
       return newPlacements;
     });
-  }, [placements]);
+  }, []);
 
   const handleDragStart = useCallback((objectId: number) => {
     setDraggedObject(objectId);

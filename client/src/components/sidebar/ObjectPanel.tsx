@@ -1,25 +1,20 @@
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import type { GameObject } from "@/types/game";
 import { useCallback } from "react";
 
 interface ObjectPanelProps {
   objects: GameObject[];
-  placedObjects: Set<number>; // Track which objects are on the canvas
+  placedObjects: Set<number>;
   onDragStart: (objectId: number) => void;
 }
 
 export default function ObjectPanel({ objects, placedObjects, onDragStart }: ObjectPanelProps) {
   const handleDragStart = useCallback((e: React.DragEvent<HTMLDivElement>, obj: GameObject) => {
-    e.dataTransfer.effectAllowed = 'copy';
-    e.dataTransfer.setData("text/plain", JSON.stringify({
-      id: obj.id,
-      name: obj.name,
-      type: obj.objectType
-    }));
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData("application/x-game-object", JSON.stringify(obj));
     onDragStart(obj.id);
   }, [onDragStart]);
 
-  // Show all objects that aren't currently placed
   const availableObjects = objects.filter(obj => !placedObjects.has(obj.id));
 
   return (

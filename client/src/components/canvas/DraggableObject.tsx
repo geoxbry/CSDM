@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef } from "react";
 import { Text, Group, Rect } from "react-konva";
 import type { GameObject, Zone } from "@/types/game";
 
@@ -6,7 +6,7 @@ interface DraggableObjectProps {
   object: GameObject;
   onDragStart: () => void;
   onDragEnd: () => void;
-  onRemove: (objectId: number) => void; // New prop for handling removal
+  onRemove: (objectId: number) => void;
   placement?: number;
   zones: Zone[];
 }
@@ -43,19 +43,18 @@ export default function DraggableObject({
 
   useEffect(() => {
     if (groupRef.current && zone) {
-      // Animate to new position when zone changes
       groupRef.current.to({
         x: position.x,
         y: position.y,
         duration: 0.3,
-        easing: (t: number) => t * (2 - t) // easeOut
+        easing: (t: number) => t * (2 - t)
       });
     }
   }, [zone, position.x, position.y]);
 
-  const handleDoubleClick = useCallback(() => {
+  const handleDoubleClick = () => {
     onRemove(object.id);
-  }, [object.id, onRemove]);
+  };
 
   return (
     <Group
@@ -65,9 +64,21 @@ export default function DraggableObject({
       width={OBJECT_WIDTH}
       height={OBJECT_HEIGHT}
       draggable
-      onDragStart={onDragStart}
-      onDragEnd={onDragEnd}
+      onDragStart={() => {
+        onDragStart();
+        document.body.style.cursor = 'grabbing';
+      }}
+      onDragEnd={() => {
+        onDragEnd();
+        document.body.style.cursor = 'default';
+      }}
       onDblClick={handleDoubleClick}
+      onMouseEnter={() => {
+        document.body.style.cursor = 'grab';
+      }}
+      onMouseLeave={() => {
+        document.body.style.cursor = 'default';
+      }}
     >
       <Rect
         width={OBJECT_WIDTH}
