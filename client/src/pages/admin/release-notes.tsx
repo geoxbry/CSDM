@@ -13,14 +13,14 @@ const features: Feature[] = [
   {
     title: "UI Framework",
     description: "Professional theme implementation with responsive layout and toast notifications",
-    implementationDate: "2025-01-26T21:50:00",
+    implementationDate: "2025-01-26T18:30:00-08:00", // 6:30 PM PST
     category: "Technical Infrastructure",
     recreatePrompt: "Build a professional UI framework with responsive layout and toast notifications using shadcn components. Include a theme system for consistent styling."
   },
   {
     title: "Data Management",
     description: "Database integration with API endpoints and validation",
-    implementationDate: "2025-01-26T21:50:00",
+    implementationDate: "2025-01-26T19:00:00-08:00", // 7:00 PM PST
     category: "Technical Infrastructure",
     recreatePrompt: "Set up a PostgreSQL database with Drizzle ORM. Create API endpoints for CRUD operations with data validation using Zod. Implement proper error handling and response formatting."
   },
@@ -29,21 +29,21 @@ const features: Feature[] = [
   {
     title: "Drag and Drop Functionality",
     description: "Interactive drag and drop system for game objects with visual feedback",
-    implementationDate: "2025-01-26T21:50:00",
+    implementationDate: "2025-01-26T19:30:00-08:00", // 7:30 PM PST
     category: "Game/Training Interface",
     recreatePrompt: "Create a drag and drop system using react-dnd that allows users to drag objects from a sidebar and drop them into designated zones. Include visual feedback for dragging states."
   },
   {
     title: "Canvas Interaction System",
     description: "Interactive canvas with drop zones and placement validation",
-    implementationDate: "2025-01-26T21:50:00",
+    implementationDate: "2025-01-26T20:00:00-08:00", // 8:00 PM PST
     category: "Game/Training Interface",
     recreatePrompt: "Create a canvas that allows users to drag and drop objects into specific zones. The canvas should support multiple drop zones, validate object placement, and provide visual feedback when objects are placed correctly."
   },
   {
     title: "Score and Feedback System",
     description: "Real-time score tracking and user feedback mechanisms",
-    implementationDate: "2025-01-26T21:50:00",
+    implementationDate: "2025-01-26T20:30:00-08:00", // 8:30 PM PST
     category: "Game/Training Interface",
     recreatePrompt: "Implement a scoring system that tracks points based on correct object placements. Add a validation system that provides immediate feedback through toast notifications for both correct and incorrect placements."
   },
@@ -52,21 +52,21 @@ const features: Feature[] = [
   {
     title: "Zone Management",
     description: "Create, edit, and delete zones in the Main Canvas with automatic UI updates",
-    implementationDate: "2025-01-26T21:50:00",
+    implementationDate: "2025-01-26T21:00:00-08:00", // 9:00 PM PST
     category: "Admin Dashboard",
     recreatePrompt: "Create an admin interface for managing zones. Include forms for creating and editing zones with x,y coordinates and dimensions. Add delete functionality with confirmation dialogs. Ensure real-time UI updates using React Query."
   },
   {
     title: "Object Management",
     description: "Create objects with correct zone assignments from Main Canvas, featuring automatic UI updates and frontend integration",
-    implementationDate: "2025-01-26T21:50:00",
+    implementationDate: "2025-01-26T21:20:00-08:00", // 9:20 PM PST
     category: "Admin Dashboard",
     recreatePrompt: "Build an object management system where admins can create game objects, assign them to correct zones, set points, and customize success/error messages. Include automatic UI updates and proper integration with the main canvas."
   },
   {
     title: "Scenario Management",
     description: "Customer-specific scenario configuration with zone and object associations, including edit and delete functionality",
-    implementationDate: "2025-01-26T21:50:00",
+    implementationDate: "2025-01-26T21:50:00-08:00", // 9:50 PM PST
     category: "Admin Dashboard",
     recreatePrompt: "Create a scenario management system that allows admins to configure customer-specific training scenarios. Include the ability to associate multiple zones and objects with each scenario, add descriptions, and manage scenario metadata. Implement edit and delete functionality with confirmation dialogs."
   }
@@ -128,7 +128,16 @@ export default function ReleaseNotes() {
                   <div className="flex justify-between items-start mb-2">
                     <h3 className="font-semibold">{feature.title}</h3>
                     <span className="text-xs text-muted-foreground">
-                      {new Date(feature.implementationDate).toLocaleString()}
+                      {new Date(feature.implementationDate).toLocaleString('en-US', {
+                        timeZone: 'America/Los_Angeles',
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                        hour: 'numeric',
+                        minute: '2-digit',
+                        hour12: true,
+                        timeZoneName: 'short'
+                      })}
                     </span>
                   </div>
                   <p className="text-sm text-muted-foreground">
