@@ -1,4 +1,4 @@
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, QueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -110,6 +110,8 @@ export default function ZonesManagement() {
     },
     onSuccess: () => {
       toast({ title: "Zone deleted successfully" });
+      // Invalidate and refetch zones query
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/zones"] });
     },
     onError: () => {
       toast({
