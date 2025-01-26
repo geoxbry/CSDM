@@ -26,6 +26,8 @@ export default function DraggableObject({
     ? zones.find(z => z.id === placement)
     : null;
 
+  // If placed in a zone, center the object in that zone
+  // Otherwise use a default position
   const x = zone ? zone.x + (zone.width - OBJECT_WIDTH) / 2 : 20;
   const y = zone ? zone.y + (zone.height - OBJECT_HEIGHT) / 2 : 20;
 
