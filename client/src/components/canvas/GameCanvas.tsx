@@ -43,13 +43,19 @@ const DropZone = ({ zone, onDrop, children }: DropZoneProps) => {
         {zone.name}
       </div>
       {children}
+      <div className="absolute -bottom-8 left-0 w-full text-center text-xs text-muted-foreground">
+        Double click to return to sidebar
+      </div>
     </div>
   );
 };
 
-const PlacedObject = ({ object }: { object: GameObject }) => {
+const PlacedObject = ({ object, onRemove }: { object: GameObject; onRemove: () => void }) => {
   return (
-    <div className="absolute inset-0 flex items-center justify-center bg-white rounded border shadow-sm">
+    <div 
+      className="absolute inset-0 flex items-center justify-center bg-white rounded border shadow-sm cursor-pointer hover:bg-gray-50"
+      onDoubleClick={onRemove}
+    >
       <div className="text-center">
         <p className="font-medium">{object.name}</p>
         <p className="text-sm text-muted-foreground">{object.objectType}</p>
@@ -66,6 +72,14 @@ export default function GameCanvas({ zones, objects, onValidate }: GameCanvasPro
     setPlacements(prev => {
       const newPlacements = new Map(prev);
       newPlacements.set(objectId, zoneId);
+      return newPlacements;
+    });
+  };
+
+  const handleRemove = (objectId: number) => {
+    setPlacements(prev => {
+      const newPlacements = new Map(prev);
+      newPlacements.delete(objectId);
       return newPlacements;
     });
   };
@@ -89,7 +103,12 @@ export default function GameCanvas({ zones, objects, onValidate }: GameCanvasPro
 
         return (
           <DropZone key={zone.id} zone={zone} onDrop={handleDrop}>
-            {placedObject && <PlacedObject object={placedObject} />}
+            {placedObject && (
+              <PlacedObject 
+                object={placedObject} 
+                onRemove={() => handleRemove(placedObject.id)}
+              />
+            )}
           </DropZone>
         );
       })}

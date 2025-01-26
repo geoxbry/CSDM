@@ -53,7 +53,6 @@ export default function Game() {
         <ObjectPanel 
           objects={data.objects}
           placedObjects={placedObjects}
-          onDragStart={() => {}} // No-op, we'll handle placement after successful drop
         />
       </aside>
 
