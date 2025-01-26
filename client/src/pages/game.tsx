@@ -47,12 +47,17 @@ export default function Game() {
     setPlacedObjects(new Set(placements.map(p => p.objectId)));
   };
 
+  const handleDragStart = (objectId: number) => {
+    setPlacedObjects(prev => new Set([...prev, objectId]));
+  };
+
   return (
     <div className="flex h-screen">
       <aside className="w-64 border-r bg-muted/50">
         <ObjectPanel 
           objects={data.objects}
           placedObjects={placedObjects}
+          onDragStart={handleDragStart}
         />
       </aside>
 

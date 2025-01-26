@@ -21,12 +21,18 @@ export default function GameCanvas({ zones, objects, onValidate }: GameCanvasPro
   const placedObjectIds = useMemo(() => new Set(placements.keys()), [placements]);
 
   const handleDrop = useCallback((objectId: number, zoneId: number) => {
+    // Check if the zone already has an object
+    const zoneHasObject = Array.from(placements.entries()).some(([_, zone]) => zone === zoneId);
+    if (zoneHasObject) {
+      return; // Don't allow the drop if zone is occupied
+    }
+
     setPlacements(prev => {
       const newPlacements = new Map(prev);
       newPlacements.set(objectId, zoneId);
       return newPlacements;
     });
-  }, []);
+  }, [placements]);
 
   const handleDragStart = useCallback((objectId: number) => {
     setDraggedObject(objectId);
@@ -88,7 +94,14 @@ export default function GameCanvas({ zones, objects, onValidate }: GameCanvasPro
             }
           });
 
-          handleDrop(obj.id, closestZone.id);
+          // Check if the closest zone already has an object
+          const zoneHasObject = Array.from(placements.entries()).some(
+            ([_, zone]) => zone === closestZone.id
+          );
+
+          if (!zoneHasObject) {
+            handleDrop(obj.id, closestZone.id);
+          }
         } catch (err) {
           console.error("Failed to parse dropped object data:", err);
         }
