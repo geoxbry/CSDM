@@ -44,18 +44,20 @@ const formSchema = z.object({
   objectIds: z.array(z.number()).min(1, "At least one object must be selected"),
 });
 
+const defaultValues = {
+  name: "",
+  customerName: "",
+  description: "",
+  zoneIds: [],
+  objectIds: [],
+};
+
 export default function ScenariosManagement() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      name: "",
-      customerName: "",
-      description: "",
-      zoneIds: [],
-      objectIds: [],
-    },
+    defaultValues,
   });
 
   const { data: scenarios } = useQuery<Scenario[]>({
@@ -168,6 +170,10 @@ export default function ScenariosManagement() {
 
   const handleDelete = (id: number) => {
     deleteScenarioMutation.mutate(id);
+  };
+
+  const handleCancel = () => {
+    form.reset(defaultValues);
   };
 
   return (
@@ -338,7 +344,7 @@ export default function ScenariosManagement() {
                     <Button
                       type="button"
                       variant="outline"
-                      onClick={() => form.reset()}
+                      onClick={handleCancel}
                     >
                       Cancel Edit
                     </Button>
