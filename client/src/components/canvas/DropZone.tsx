@@ -23,10 +23,10 @@ export default function DropZone({ zone, isActive, onDrop }: DropZoneProps) {
     e.evt.preventDefault();
     e.evt.stopPropagation();
 
-    const data = e.evt.dataTransfer?.getData("application/x-game-object");
-    if (!data) return;
-
     try {
+      const data = e.evt.dataTransfer?.getData("application/x-game-object");
+      if (!data) return;
+
       const obj = JSON.parse(data);
       onDrop(obj.id, zone.id);
     } catch (err) {

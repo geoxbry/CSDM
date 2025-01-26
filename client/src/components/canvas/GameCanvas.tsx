@@ -20,16 +20,6 @@ export default function GameCanvas({ zones, objects, onValidate }: GameCanvasPro
   const handleDrop = useCallback((objectId: number, zoneId: number) => {
     setPlacements(prev => {
       const newPlacements = new Map(prev);
-
-      // Check if another object is in this zone
-      for (const [existingObjId, existingZoneId] of Array.from(newPlacements.entries())) {
-        if (existingZoneId === zoneId) {
-          // If so, remove it first
-          newPlacements.delete(existingObjId);
-        }
-      }
-
-      // Place the new object
       newPlacements.set(objectId, zoneId);
       return newPlacements;
     });
