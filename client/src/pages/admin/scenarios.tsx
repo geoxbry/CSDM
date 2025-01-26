@@ -21,9 +21,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Pencil } from "lucide-react";
 import type { Scenario, Zone, GameObject } from "@/types/game";
 
 const formSchema = z.object({
+  id: z.number().optional(),
   name: z.string().min(1, "Name is required"),
   customerName: z.string().min(1, "Customer name is required"),
   description: z.string().optional(),
@@ -85,8 +87,53 @@ export default function ScenariosManagement() {
     },
   });
 
+  const updateScenarioMutation = useMutation({
+    mutationFn: async (values: z.infer<typeof formSchema>) => {
+      const res = await fetch(`/api/admin/scenarios/${values.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(values),
+      });
+      if (!res.ok) throw new Error("Failed to update scenario");
+      return res.json();
+    },
+    onSuccess: (updatedScenario) => {
+      toast({ title: "Scenario updated successfully" });
+      form.reset();
+      // Update the cache immediately
+      queryClient.setQueryData(["/api/admin/scenarios"], (old: Scenario[] | undefined) => {
+        return old?.map(scenario => 
+          scenario.id === updatedScenario.id ? updatedScenario : scenario
+        ) || [];
+      });
+      // Invalidate to ensure consistency with server
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/scenarios"] });
+    },
+    onError: () => {
+      toast({
+        title: "Failed to update scenario",
+        variant: "destructive",
+      });
+    },
+  });
+
   const onSubmit = (values: z.infer<typeof formSchema>) => {
-    createScenarioMutation.mutate(values);
+    if (values.id) {
+      updateScenarioMutation.mutate(values);
+    } else {
+      createScenarioMutation.mutate(values);
+    }
+  };
+
+  const handleEdit = (scenario: Scenario) => {
+    form.reset({
+      id: scenario.id,
+      name: scenario.name,
+      customerName: scenario.customerName,
+      description: scenario.description || "",
+      zoneIds: scenario.zoneIds as number[],
+      objectIds: scenario.objectIds as number[],
+    });
   };
 
   return (
@@ -96,7 +143,7 @@ export default function ScenariosManagement() {
       <div className="grid md:grid-cols-2 gap-8">
         <Card>
           <CardHeader>
-            <CardTitle>Create New Scenario</CardTitle>
+            <CardTitle>{form.getValues("id") ? "Edit Scenario" : "Create New Scenario"}</CardTitle>
           </CardHeader>
           <CardContent>
             <Form {...form}>
@@ -249,7 +296,20 @@ export default function ScenariosManagement() {
                   )}
                 />
 
-                <Button type="submit">Create Scenario</Button>
+                <div className="flex gap-2">
+                  <Button type="submit">
+                    {form.getValues("id") ? "Update Scenario" : "Create Scenario"}
+                  </Button>
+                  {form.getValues("id") && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => form.reset()}
+                    >
+                      Cancel Edit
+                    </Button>
+                  )}
+                </div>
               </form>
             </Form>
           </CardContent>
@@ -264,8 +324,17 @@ export default function ScenariosManagement() {
               {scenarios?.map((scenario) => (
                 <div
                   key={scenario.id}
-                  className="p-4 border rounded-lg hover:bg-accent/50"
+                  className="p-4 border rounded-lg hover:bg-accent/50 relative group"
                 >
+                  <div className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button
+                      onClick={() => handleEdit(scenario)}
+                      className="p-2"
+                      title="Edit scenario"
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </button>
+                  </div>
                   <h3 className="font-semibold">{scenario.name}</h3>
                   <p className="text-sm text-muted-foreground">
                     Customer: {scenario.customerName}

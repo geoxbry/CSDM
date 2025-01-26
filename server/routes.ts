@@ -226,6 +226,29 @@ export function registerRoutes(app: Express): Server {
     res.json(newScenario[0]);
   });
 
+  app.put("/api/admin/scenarios/:id", requireAdmin, async (req, res) => {
+    const { id } = req.params;
+    const { name, customerName, description, zoneIds, objectIds } = req.body;
+
+    const updatedScenario = await db
+      .update(scenarios)
+      .set({
+        name,
+        customerName,
+        description,
+        zoneIds,
+        objectIds,
+      })
+      .where(eq(scenarios.id, parseInt(id)))
+      .returning();
+
+    if (!updatedScenario.length) {
+      return res.status(404).json({ message: "Scenario not found" });
+    }
+
+    res.json(updatedScenario[0]);
+  });
+
   // Non-admin routes
   app.get("/api/scenarios/:customerId", async (req, res) => {
     const { customerId } = req.params;
