@@ -15,6 +15,7 @@ export default function Game() {
   const { toast } = useToast();
   const [placedObjects, setPlacedObjects] = useState<Set<number>>(new Set());
   const [objectPlacements, setObjectPlacements] = useState<Map<number, number>>(new Map());
+  const [zoneOccupancy, setZoneOccupancy] = useState<Set<number>>(new Set());
 
   const { data, isLoading } = useQuery<ScenarioResponse>({
     queryKey: ["/api/scenario/1"], // TODO: Make dynamic
@@ -45,38 +46,21 @@ export default function Game() {
   }
 
   const handleObjectPlace = (objectId: number, zoneId: number) => {
-    // First clear any existing object in this zone
-    const currentObjectInZone = Array.from(objectPlacements).find(([_, zone]) => zone === zoneId);
-    if (currentObjectInZone) {
-      const [existingObjectId] = currentObjectInZone;
-      // Return the existing object to the panel
-      setPlacedObjects(prev => {
-        const newPlaced = new Set(prev);
-        newPlaced.delete(existingObjectId);
-        return newPlaced;
-      });
+    // If zone is already occupied, return early
+    if (zoneOccupancy.has(zoneId)) {
+      return;
     }
 
-    // Clear any previous placement of the new object
-    const previousZone = objectPlacements.get(objectId);
-    if (previousZone !== undefined) {
-      setObjectPlacements(prev => {
-        const newPlacements = new Map(prev);
-        newPlacements.delete(objectId);
-        return newPlacements;
-      });
-    }
+    // Update zone occupancy
+    setZoneOccupancy(prev => {
+      const newOccupancy = new Set(prev);
+      newOccupancy.add(zoneId);
+      return newOccupancy;
+    });
 
     // Set the new placement
     setObjectPlacements(prev => {
       const newPlacements = new Map(prev);
-      // First remove any object that was in this zone
-      Array.from(newPlacements.entries()).forEach(([objId, zId]) => {
-        if (zId === zoneId) {
-          newPlacements.delete(objId);
-        }
-      });
-      // Then set the new object
       newPlacements.set(objectId, zoneId);
       return newPlacements;
     });
@@ -90,11 +74,25 @@ export default function Game() {
   };
 
   const handleObjectRemove = (objectId: number) => {
+    // Get the zone this object was in
+    const zoneId = objectPlacements.get(objectId);
+    if (zoneId !== undefined) {
+      // Free up the zone
+      setZoneOccupancy(prev => {
+        const newOccupancy = new Set(prev);
+        newOccupancy.delete(zoneId);
+        return newOccupancy;
+      });
+    }
+
+    // Remove the placement
     setObjectPlacements(prev => {
       const newPlacements = new Map(prev);
       newPlacements.delete(objectId);
       return newPlacements;
     });
+
+    // Mark object as not placed
     setPlacedObjects(prev => {
       const newPlaced = new Set(prev);
       newPlaced.delete(objectId);
@@ -108,7 +106,7 @@ export default function Game() {
     <div className="flex h-screen">
       <aside className="w-64 border-r bg-muted/50">
         <ObjectPanel 
-          objects={availableObjects}
+          objects={data.objects}
           placedObjects={placedObjects}
         />
       </aside>
