@@ -19,6 +19,19 @@ export default function DropZone({ zone, isActive, onDrop }: DropZoneProps) {
         stroke="rgba(0,0,0,0.2)"
         strokeWidth={2}
         cornerRadius={8}
+        onDragEnter={() => {
+          // Handle drag enter styling if needed
+        }}
+        onDragLeave={() => {
+          // Handle drag leave styling if needed
+        }}
+        onDrop={(e) => {
+          const objectData = e.dataTransfer?.getData("application/json");
+          if (objectData) {
+            const object = JSON.parse(objectData);
+            onDrop(object.id, zone.id);
+          }
+        }}
       />
       <Text
         x={zone.x}
