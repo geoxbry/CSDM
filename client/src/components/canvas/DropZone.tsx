@@ -12,10 +12,18 @@ export default function DropZone({ zone, isActive, onDrop }: DropZoneProps) {
   const handleDragOver = (e: KonvaEventObject<DragEvent>) => {
     e.evt.preventDefault();
     e.evt.stopPropagation();
+    // Change the cursor to indicate droppable
+    document.body.style.cursor = 'copy';
+  };
+
+  const handleDragLeave = () => {
+    document.body.style.cursor = 'default';
   };
 
   const handleDrop = (e: KonvaEventObject<DragEvent>) => {
     e.evt.preventDefault();
+    document.body.style.cursor = 'default';
+
     const data = e.evt.dataTransfer?.getData("text/plain");
     if (data) {
       try {
@@ -39,6 +47,7 @@ export default function DropZone({ zone, isActive, onDrop }: DropZoneProps) {
         strokeWidth={2}
         cornerRadius={8}
         onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
         onDrop={handleDrop}
       />
       <Text

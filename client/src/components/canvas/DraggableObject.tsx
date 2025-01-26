@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { Text, Group, Rect } from "react-konva";
 import type { GameObject, Zone } from "@/types/game";
 
@@ -26,21 +26,45 @@ export default function DraggableObject({
     ? zones.find(z => z.id === placement)
     : null;
 
-  // If placed in a zone, center the object in that zone
-  // Otherwise use a default position
-  const x = zone ? zone.x + (zone.width - OBJECT_WIDTH) / 2 : 20;
-  const y = zone ? zone.y + (zone.height - OBJECT_HEIGHT) / 2 : 20;
+  // Calculate position based on zone or default position
+  let position = {
+    x: 20,
+    y: 20
+  };
+
+  if (zone) {
+    position = {
+      x: zone.x + (zone.width - OBJECT_WIDTH) / 2,
+      y: zone.y + (zone.height - OBJECT_HEIGHT) / 2
+    };
+  }
+
+  useEffect(() => {
+    if (groupRef.current && zone) {
+      // Animate to new position when zone changes
+      groupRef.current.to({
+        x: position.x,
+        y: position.y,
+        duration: 0.3,
+        easing: (t: number) => t * (2 - t) // easeOut
+      });
+    }
+  }, [zone, position.x, position.y]);
 
   return (
     <Group
       ref={groupRef}
-      x={x}
-      y={y}
+      x={position.x}
+      y={position.y}
       width={OBJECT_WIDTH}
       height={OBJECT_HEIGHT}
       draggable
-      onDragStart={onDragStart}
-      onDragEnd={onDragEnd}
+      onDragStart={() => {
+        onDragStart();
+      }}
+      onDragEnd={(e) => {
+        onDragEnd();
+      }}
     >
       <Rect
         width={OBJECT_WIDTH}

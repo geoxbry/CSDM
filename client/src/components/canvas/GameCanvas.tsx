@@ -45,7 +45,44 @@ export default function GameCanvas({ zones, objects, onValidate }: GameCanvasPro
   const placedObjects = objects.filter(obj => placements.has(obj.id));
 
   return (
-    <div className="relative w-full h-full" style={{ touchAction: 'none' }}>
+    <div 
+      className="relative w-full h-full bg-background/50" 
+      style={{ touchAction: 'none' }}
+      onDragOver={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+      }}
+      onDrop={(e) => {
+        e.preventDefault();
+        const data = e.dataTransfer.getData("text/plain");
+        try {
+          const obj = JSON.parse(data);
+          // Find the closest zone to the drop point
+          const rect = e.currentTarget.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          const y = e.clientY - rect.top;
+
+          let closestZone = zones[0];
+          let minDistance = Number.MAX_VALUE;
+
+          zones.forEach(zone => {
+            const centerX = zone.x + zone.width / 2;
+            const centerY = zone.y + zone.height / 2;
+            const distance = Math.sqrt(
+              Math.pow(centerX - x, 2) + Math.pow(centerY - y, 2)
+            );
+            if (distance < minDistance) {
+              minDistance = distance;
+              closestZone = zone;
+            }
+          });
+
+          handleDrop(obj.id, closestZone.id);
+        } catch (err) {
+          console.error("Failed to parse dropped object data:", err);
+        }
+      }}
+    >
       <Stage width={CANVAS_WIDTH} height={CANVAS_HEIGHT}>
         <Layer>
           {zones.map(zone => (
