@@ -5,10 +5,10 @@ import { useCallback } from "react";
 interface ObjectPanelProps {
   objects: GameObject[];
   placedObjects: Set<number>; // Track which objects are on the canvas
-  onDragStart: (objectId: number) => void; // New prop to handle drag start
+  onDragStart: (objectId: number) => void;
 }
 
-export default function ObjectPanel({ objects, placedObjects, onDragStart }: ObjectPanelProps) {
+export default function ObjectPanel({ objects, placedObjects }: ObjectPanelProps) {
   const handleDragStart = useCallback((e: React.DragEvent<HTMLDivElement>, obj: GameObject) => {
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData("text/plain", JSON.stringify({
@@ -16,8 +16,7 @@ export default function ObjectPanel({ objects, placedObjects, onDragStart }: Obj
       name: obj.name,
       type: obj.objectType
     }));
-    onDragStart(obj.id); // Notify parent that drag has started
-  }, [onDragStart]);
+  }, []);
 
   // Filter out objects that are already placed on the canvas
   const availableObjects = objects.filter(obj => !placedObjects.has(obj.id));

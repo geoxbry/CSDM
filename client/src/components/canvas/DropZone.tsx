@@ -16,12 +16,15 @@ export default function DropZone({ zone, isActive, onDrop }: DropZoneProps) {
     document.body.style.cursor = 'copy';
   };
 
-  const handleDragLeave = () => {
+  const handleDragLeave = (e: KonvaEventObject<DragEvent>) => {
+    e.evt.preventDefault();
+    e.evt.stopPropagation();
     document.body.style.cursor = 'default';
   };
 
   const handleDrop = (e: KonvaEventObject<DragEvent>) => {
     e.evt.preventDefault();
+    e.evt.stopPropagation();
     document.body.style.cursor = 'default';
 
     const data = e.evt.dataTransfer?.getData("text/plain");

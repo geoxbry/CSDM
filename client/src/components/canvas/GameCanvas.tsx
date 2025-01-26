@@ -17,9 +17,6 @@ export default function GameCanvas({ zones, objects, onValidate }: GameCanvasPro
   const [placements, setPlacements] = useState<Map<number, number>>(new Map());
   const [draggedObject, setDraggedObject] = useState<number | null>(null);
 
-  // Create a Set of placed object IDs for efficient lookup
-  const placedObjectIds = useMemo(() => new Set(placements.keys()), [placements]);
-
   const handleDrop = useCallback((objectId: number, zoneId: number) => {
     // Check if the zone already has an object
     const zoneHasObject = Array.from(placements.entries()).some(([_, zone]) => zone === zoneId);
@@ -68,43 +65,6 @@ export default function GameCanvas({ zones, objects, onValidate }: GameCanvasPro
       onDragOver={(e) => {
         e.preventDefault();
         e.stopPropagation();
-      }}
-      onDrop={(e) => {
-        e.preventDefault();
-        const data = e.dataTransfer.getData("text/plain");
-        try {
-          const obj = JSON.parse(data);
-          // Find the closest zone to the drop point
-          const rect = e.currentTarget.getBoundingClientRect();
-          const x = e.clientX - rect.left;
-          const y = e.clientY - rect.top;
-
-          let closestZone = zones[0];
-          let minDistance = Number.MAX_VALUE;
-
-          zones.forEach(zone => {
-            const centerX = zone.x + zone.width / 2;
-            const centerY = zone.y + zone.height / 2;
-            const distance = Math.sqrt(
-              Math.pow(centerX - x, 2) + Math.pow(centerY - y, 2)
-            );
-            if (distance < minDistance) {
-              minDistance = distance;
-              closestZone = zone;
-            }
-          });
-
-          // Check if the closest zone already has an object
-          const zoneHasObject = Array.from(placements.entries()).some(
-            ([_, zone]) => zone === closestZone.id
-          );
-
-          if (!zoneHasObject) {
-            handleDrop(obj.id, closestZone.id);
-          }
-        } catch (err) {
-          console.error("Failed to parse dropped object data:", err);
-        }
       }}
     >
       <Stage width={CANVAS_WIDTH} height={CANVAS_HEIGHT}>
