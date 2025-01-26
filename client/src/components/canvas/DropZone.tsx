@@ -11,18 +11,28 @@ interface DropZoneProps {
 export default function DropZone({ zone, isActive, onDrop }: DropZoneProps) {
   const handleDragOver = (e: KonvaEventObject<DragEvent>) => {
     e.evt.preventDefault();
-    e.evt.dataTransfer.dropEffect = 'move';
+    if (e.evt.dataTransfer) {
+      e.evt.dataTransfer.dropEffect = 'move';
+    }
   };
 
   const handleDrop = (e: KonvaEventObject<DragEvent>) => {
     e.evt.preventDefault();
     console.log('Drop event in zone:', zone.id);
 
-    const objectId = e.evt.dataTransfer?.getData("text/plain");
-    console.log('Dropped object data:', objectId);
+    try {
+      if (e.evt.dataTransfer) {
+        const data = e.evt.dataTransfer.getData("application/json");
+        console.log('Drop data:', data);
 
-    if (objectId) {
-      onDrop(parseInt(objectId, 10), zone.id);
+        if (data) {
+          const { id } = JSON.parse(data);
+          console.log('Parsed object ID:', id);
+          onDrop(id, zone.id);
+        }
+      }
+    } catch (err) {
+      console.error('Drop error:', err);
     }
   };
 
@@ -33,7 +43,7 @@ export default function DropZone({ zone, isActive, onDrop }: DropZoneProps) {
         y={zone.y}
         width={zone.width}
         height={zone.height}
-        fill={isActive ? "rgba(0,0,0,0.05)" : "transparent"}
+        fill={isActive ? "rgba(0,0,0,0.1)" : "transparent"}
         stroke="#000"
         strokeWidth={2}
         cornerRadius={8}

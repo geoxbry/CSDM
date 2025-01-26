@@ -10,7 +10,8 @@ interface ObjectPanelProps {
 export default function ObjectPanel({ objects, placedObjects, onDragStart }: ObjectPanelProps) {
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>, object: GameObject) => {
     console.log('Drag start from sidebar:', object.id);
-    e.dataTransfer.setData("text/plain", object.id.toString());
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData("application/json", JSON.stringify({ id: object.id }));
     onDragStart(object.id);
   };
 
@@ -23,7 +24,7 @@ export default function ObjectPanel({ objects, placedObjects, onDragStart }: Obj
             <div
               key={obj.id}
               className="p-3 bg-card border rounded-lg select-none cursor-move hover:bg-accent/50"
-              draggable={true}
+              draggable
               onDragStart={(e) => handleDragStart(e, obj)}
             >
               <p className="font-medium">{obj.name}</p>
