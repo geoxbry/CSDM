@@ -140,6 +140,38 @@ export function registerRoutes(app: Express): Server {
     res.json(updatedZone[0]);
   });
 
+  app.delete("/api/admin/zones/:id", requireAdmin, async (req, res) => {
+    const { id } = req.params;
+    const zoneId = parseInt(id);
+
+    // First, get all scenarios that might reference this zone
+    const allScenarios = await db.query.scenarios.findMany();
+
+    // Update scenarios to remove the deleted zone from their zoneIds
+    for (const scenario of allScenarios) {
+      const zoneIds = scenario.zoneIds as number[];
+      if (zoneIds.includes(zoneId)) {
+        const updatedZoneIds = zoneIds.filter(id => id !== zoneId);
+        await db
+          .update(scenarios)
+          .set({ zoneIds: updatedZoneIds })
+          .where(eq(scenarios.id, scenario.id));
+      }
+    }
+
+    // Delete the zone
+    const deletedZone = await db
+      .delete(zones)
+      .where(eq(zones.id, zoneId))
+      .returning();
+
+    if (!deletedZone.length) {
+      return res.status(404).json({ message: "Zone not found" });
+    }
+
+    res.json(deletedZone[0]);
+  });
+
   app.get("/api/admin/objects", requireAdmin, async (req, res) => {
     const allObjects = await db.query.objects.findMany();
     res.json(allObjects);
