@@ -1,4 +1,4 @@
-import { useQuery, useMutation, QueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -40,6 +40,7 @@ const formSchema = z.object({
 
 export default function ZonesManagement() {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -69,6 +70,7 @@ export default function ZonesManagement() {
     onSuccess: () => {
       toast({ title: "Zone created successfully" });
       form.reset();
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/zones"] });
     },
     onError: () => {
       toast({
@@ -91,6 +93,7 @@ export default function ZonesManagement() {
     onSuccess: () => {
       toast({ title: "Zone updated successfully" });
       form.reset();
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/zones"] });
     },
     onError: () => {
       toast({
@@ -110,7 +113,6 @@ export default function ZonesManagement() {
     },
     onSuccess: () => {
       toast({ title: "Zone deleted successfully" });
-      // Invalidate and refetch zones query
       queryClient.invalidateQueries({ queryKey: ["/api/admin/zones"] });
     },
     onError: () => {
