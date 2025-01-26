@@ -45,12 +45,14 @@ export default function Game() {
   }
 
   const handleObjectPlace = (objectId: number, zoneId: number) => {
-    // Check if there's already an object in this zone
-    const existingObjectId = Array.from(objectPlacements.entries())
-      .find(([_, placedZoneId]) => placedZoneId === zoneId)?.[0];
+    // Check if any object is already in this zone
+    const existingObjectInZone = Array.from(objectPlacements.entries())
+      .find(([_, zId]) => zId === zoneId);
 
-    // If there is, remove it from placements and placed objects
-    if (existingObjectId !== undefined) {
+    if (existingObjectInZone) {
+      const [existingObjectId] = existingObjectInZone;
+      // Remove the existing object from placements and placed objects
+      // This will make it return to the left panel
       setPlacedObjects(prev => {
         const newPlaced = new Set(prev);
         newPlaced.delete(existingObjectId);
@@ -58,16 +60,21 @@ export default function Game() {
       });
     }
 
-    // Update placements with the new object
+    // Update placements - remove any existing object in the zone and set the new object
     setObjectPlacements(prev => {
       const newPlacements = new Map(prev);
-      if (existingObjectId !== undefined) {
-        newPlacements.delete(existingObjectId);
+      // Remove any object that was in this zone
+      for (const [objId, zId] of newPlacements.entries()) {
+        if (zId === zoneId) {
+          newPlacements.delete(objId);
+        }
       }
+      // Place the new object
       newPlacements.set(objectId, zoneId);
       return newPlacements;
     });
 
+    // Mark the new object as placed
     setPlacedObjects(prev => {
       const newPlaced = new Set(prev);
       newPlaced.add(objectId);
@@ -95,8 +102,6 @@ export default function Game() {
       <aside className="w-64 border-r bg-muted/50">
         <ObjectPanel 
           objects={availableObjects}
-          onObjectPlace={handleObjectPlace}
-          onObjectRemove={handleObjectRemove}
           placedObjects={placedObjects}
         />
       </aside>
