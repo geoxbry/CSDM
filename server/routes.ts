@@ -151,7 +151,7 @@ export function registerRoutes(app: Express): Server {
     for (const scenario of allScenarios) {
       const zoneIds = scenario.zoneIds as number[];
       if (zoneIds.includes(zoneId)) {
-        const updatedZoneIds = zoneIds.filter(id => id !== zoneId);
+        const updatedZoneIds = zoneIds.filter((id) => id !== zoneId);
         await db
           .update(scenarios)
           .set({ zoneIds: updatedZoneIds })
@@ -190,6 +190,20 @@ export function registerRoutes(app: Express): Server {
         points,
       })
       .returning();
+
+    // Update the default scenario (id: 1) to include the new object
+    const scenario = await db.query.scenarios.findFirst({
+      where: eq(scenarios.id, 1),
+    });
+
+    if (scenario) {
+      const updatedObjectIds = [...(scenario.objectIds as number[]), newObject[0].id];
+      await db
+        .update(scenarios)
+        .set({ objectIds: updatedObjectIds })
+        .where(eq(scenarios.id, 1));
+    }
+
     res.json(newObject[0]);
   });
 
