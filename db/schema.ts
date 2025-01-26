@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, jsonb } from "drizzle-orm/pg-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 
 export const zones = pgTable("zones", {
@@ -32,12 +32,15 @@ export const scenarios = pgTable("scenarios", {
 
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
-  email: text("email").unique().notNull(),
-  customerName: text("customer_name").notNull(),
-  currentScenarioId: integer("current_scenario_id"),
-  score: integer("score").default(0),
+  username: text("username").unique().notNull(),
+  password: text("password").notNull(),
+  isAdmin: boolean("is_admin").default(false).notNull(),
 });
 
+export const insertUserSchema = createInsertSchema(users);
+export const selectUserSchema = createSelectSchema(users);
+export type InsertUser = typeof users.$inferInsert;
+export type SelectUser = typeof users.$inferSelect;
 export type Zone = typeof zones.$inferSelect;
 export type Object = typeof objects.$inferSelect;
 export type Scenario = typeof scenarios.$inferSelect;
