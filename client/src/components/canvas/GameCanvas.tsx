@@ -1,7 +1,6 @@
 import { Stage, Layer } from "react-konva";
 import { useState } from "react";
 import type { Zone, GameObject, Placement } from "@/types/game";
-import DropZone from "./DropZone";
 import DraggableObject from "./DraggableObject";
 
 interface GameCanvasProps {
@@ -17,13 +16,26 @@ export default function GameCanvas({ zones, objects, onValidate }: GameCanvasPro
   const [placements, setPlacements] = useState<Map<number, number>>(new Map());
   const [draggedObject, setDraggedObject] = useState<number | null>(null);
 
-  const handleDrop = (objectId: number, zoneId: number) => {
-    console.log(`Dropping object ${objectId} into zone ${zoneId}`);
-    setPlacements(prev => {
-      const newPlacements = new Map(prev);
-      newPlacements.set(objectId, zoneId);
-      return newPlacements;
-    });
+  const handleDrop = (e: React.DragEvent, zoneId: number) => {
+    e.preventDefault();
+    console.log('Drop event on HTML zone:', zoneId);
+
+    try {
+      const data = e.dataTransfer.getData("application/json");
+      console.log('Received drop data:', data);
+
+      if (data) {
+        const { id } = JSON.parse(data);
+        console.log('Parsed object ID:', id);
+        setPlacements(prev => {
+          const newPlacements = new Map(prev);
+          newPlacements.set(id, zoneId);
+          return newPlacements;
+        });
+      }
+    } catch (err) {
+      console.error('Drop error:', err);
+    }
   };
 
   const handleValidate = () => {
@@ -38,17 +50,33 @@ export default function GameCanvas({ zones, objects, onValidate }: GameCanvasPro
 
   return (
     <div className="relative w-full h-full bg-background/50">
+      {/* HTML Drop Zones overlaying the canvas */}
+      {zones.map(zone => (
+        <div
+          key={zone.id}
+          className={`absolute border-2 rounded-lg transition-colors ${
+            draggedObject ? 'border-primary bg-primary/10' : 'border-gray-300'
+          }`}
+          style={{
+            left: zone.x,
+            top: zone.y,
+            width: zone.width,
+            height: zone.height,
+          }}
+          onDragOver={(e) => {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+          }}
+          onDrop={(e) => handleDrop(e, zone.id)}
+        >
+          <div className="absolute -top-8 left-0 w-full text-center font-semibold">
+            {zone.name}
+          </div>
+        </div>
+      ))}
+
       <Stage width={CANVAS_WIDTH} height={CANVAS_HEIGHT}>
         <Layer>
-          {zones.map(zone => (
-            <DropZone
-              key={zone.id}
-              zone={zone}
-              isActive={draggedObject !== null}
-              onDrop={handleDrop}
-            />
-          ))}
-
           {placedObjects.map(obj => (
             <DraggableObject
               key={obj.id}
