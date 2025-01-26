@@ -1,4 +1,4 @@
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -13,7 +13,6 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -21,6 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { Scenario, Zone, GameObject } from "@/types/game";
 
 const formSchema = z.object({
@@ -33,6 +33,7 @@ const formSchema = z.object({
 
 export default function ScenariosManagement() {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -66,9 +67,15 @@ export default function ScenariosManagement() {
       if (!res.ok) throw new Error("Failed to create scenario");
       return res.json();
     },
-    onSuccess: () => {
+    onSuccess: (newScenario) => {
       toast({ title: "Scenario created successfully" });
       form.reset();
+      // Update the cache immediately
+      queryClient.setQueryData(["/api/admin/scenarios"], (old: Scenario[] | undefined) => {
+        return [...(old || []), newScenario];
+      });
+      // Invalidate to ensure consistency with server
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/scenarios"] });
     },
     onError: () => {
       toast({
