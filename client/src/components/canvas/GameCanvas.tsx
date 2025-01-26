@@ -1,5 +1,5 @@
 import { Stage, Layer } from "react-konva";
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import type { Zone, GameObject, Placement } from "@/types/game";
 import DropZone from "./DropZone";
 import DraggableObject from "./DraggableObject";
@@ -17,21 +17,14 @@ export default function GameCanvas({ zones, objects, onValidate }: GameCanvasPro
   const [placements, setPlacements] = useState<Map<number, number>>(new Map());
   const [draggedObject, setDraggedObject] = useState<number | null>(null);
 
-  const handleDrop = useCallback((objectId: number, zoneId: number) => {
+  const handleDrop = (objectId: number, zoneId: number) => {
+    console.log(`Dropping object ${objectId} into zone ${zoneId}`);
     setPlacements(prev => {
       const newPlacements = new Map(prev);
       newPlacements.set(objectId, zoneId);
       return newPlacements;
     });
-  }, []);
-
-  const handleRemoveObject = useCallback((objectId: number) => {
-    setPlacements(prev => {
-      const newPlacements = new Map(prev);
-      newPlacements.delete(objectId);
-      return newPlacements;
-    });
-  }, []);
+  };
 
   const handleValidate = () => {
     const placementArray = Array.from(placements.entries()).map(([objectId, zoneId]) => ({
@@ -60,9 +53,22 @@ export default function GameCanvas({ zones, objects, onValidate }: GameCanvasPro
             <DraggableObject
               key={obj.id}
               object={obj}
-              onDragStart={() => setDraggedObject(obj.id)}
-              onDragEnd={() => setDraggedObject(null)}
-              onRemove={handleRemoveObject}
+              onDragStart={() => {
+                console.log('Drag started:', obj.id);
+                setDraggedObject(obj.id);
+              }}
+              onDragEnd={() => {
+                console.log('Drag ended:', obj.id);
+                setDraggedObject(null);
+              }}
+              onRemove={(id) => {
+                console.log('Removing object:', id);
+                setPlacements(prev => {
+                  const newPlacements = new Map(prev);
+                  newPlacements.delete(id);
+                  return newPlacements;
+                });
+              }}
               placement={placements.get(obj.id)}
               zones={zones}
             />
@@ -71,12 +77,7 @@ export default function GameCanvas({ zones, objects, onValidate }: GameCanvasPro
       </Stage>
 
       <button
-        className={`absolute bottom-4 right-4 px-6 py-3 rounded-lg font-medium
-          ${placedObjects.length > 0
-            ? 'bg-primary text-primary-foreground hover:opacity-90'
-            : 'bg-muted text-muted-foreground cursor-not-allowed'
-          }`}
-        disabled={placedObjects.length === 0}
+        className="absolute bottom-4 right-4 px-6 py-3 rounded-lg font-medium bg-primary text-primary-foreground hover:opacity-90"
         onClick={handleValidate}
       >
         Check Answer

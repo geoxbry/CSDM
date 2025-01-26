@@ -11,11 +11,16 @@ interface DropZoneProps {
 export default function DropZone({ zone, isActive, onDrop }: DropZoneProps) {
   const handleDragOver = (e: KonvaEventObject<DragEvent>) => {
     e.evt.preventDefault();
+    e.evt.dataTransfer.dropEffect = 'move';
   };
 
   const handleDrop = (e: KonvaEventObject<DragEvent>) => {
     e.evt.preventDefault();
+    console.log('Drop event in zone:', zone.id);
+
     const objectId = e.evt.dataTransfer?.getData("text/plain");
+    console.log('Dropped object data:', objectId);
+
     if (objectId) {
       onDrop(parseInt(objectId, 10), zone.id);
     }
@@ -29,7 +34,7 @@ export default function DropZone({ zone, isActive, onDrop }: DropZoneProps) {
         width={zone.width}
         height={zone.height}
         fill={isActive ? "rgba(0,0,0,0.05)" : "transparent"}
-        stroke={isActive ? "#000" : "#ddd"}
+        stroke="#000"
         strokeWidth={2}
         cornerRadius={8}
         onDragOver={handleDragOver}
